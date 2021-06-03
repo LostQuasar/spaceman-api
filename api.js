@@ -216,11 +216,10 @@ class SpaceApi{
      * @param {String} currency The currency used to buy the item ex. "RUB"
      * @param {Number} loyalty The loyalty level required to purchased
      * @param {Boolean} [unlimited=true] If the item is sold in unlimited quantities
-     * @param {Number} [objectCount=999999] The quantitiy of the item to sell
+     * @param {Number} [objectCount=999999] The quantity of the item to sell
      */
     static CreateTraderAssort(id, tpl, traderID, price, currency, loyalty, unlimited = true, objectCount = 999999) {
-        const traders = DatabaseServer.tables.traders;
-        traders[traderID].assort.items.push({
+        DatabaseServer.tables.traders[traderID].assort.items.push({
             "_id": id,
             "_tpl": tpl,
             "parentId": "hideout",
@@ -232,11 +231,11 @@ class SpaceApi{
         })
         var currencyDict = {
             "RUB": "5449016a4bdc2d6f028b456f",
-            "EUR": "569668774bdc2da2298b4568",
-            "USD": "5696686a4bdc2da3298b456a"
+            "USD": "5696686a4bdc2da3298b456a",
+            "EUR": "569668774bdc2da2298b4568"
         };
-        traders[traderID].assort.barter_scheme[id] = [[{ "count": price, "_tpl": currencyDict[currency] }]]
-        traders[traderID].assort.loyal_level_items[id] = loyalty
+        DatabaseServer.tables.traders[traderID].assort.barter_scheme[id] = [[{ "count": price, "_tpl": currencyDict[currency] }]]
+        DatabaseServer.tables.traders[traderID].assort.loyal_level_items[id] = loyalty
     }
 
     
@@ -249,9 +248,7 @@ class SpaceApi{
      * @param {String} slotId The slot which this item belongs
      */
      static AddonTraderAssortSale(id, tpl, traderID, parent, slotId) {
-        const database = DatabaseServer.tables;
-        const traders = database.traders;
-        traders[traderID].assort.items.push({
+        DatabaseServer.tables.traders[traderID].assort.items.push({
             "_id": id,
             "_tpl": tpl,
             "parentId": parent,
@@ -274,8 +271,7 @@ class SpaceApi{
      * @param {Number} [objectCount=999999] The quantitiy of the item to sell
     */
     static CreateTraderBarter(id, tpl, barter, traderID, loyalty, unlimited = true, objectCount = 999999) {
-        const traders = DatabaseServer.tables.traders;
-        traders[traderID].assort.items.push({
+        DatabaseServer.tables.traders[traderID].assort.items.push({
             "_id": id,
             "_tpl": tpl,
             "parentId": "hideout",
@@ -285,8 +281,8 @@ class SpaceApi{
                 "StackObjectsCount": objectCount
             }
         })
-        traders[traderID].assort.barter_scheme[id] = barter
-        traders[traderID].assort.loyal_level_items[id] = loyalty
+        DatabaseServer.tables.traders[traderID].assort.barter_scheme[id] = barter
+        DatabaseServer.tables.traders[traderID].assort.loyal_level_items[id] = loyalty
     }
 
     /**
