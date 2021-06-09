@@ -5,7 +5,8 @@ Spaceman
 
 "use strict";
 
-class SpaceApi{
+class SpaceApi {
+    
     /**
      * Creates a simple clone of an item that only has the prefab changed
      * @param {String} idToClone The id of the item to clone
@@ -98,8 +99,8 @@ class SpaceApi{
      * Creates a locale for the quest condition 
      * @param {String} lang The id of the locale ex. "en"  
      * @param {String} id The id of the quest
-     * @param {String} condID The id of the quest's condtion
-     * @param {String} text The text of the conditon
+     * @param {String} condID The id of the quest's condition
+     * @param {String} text The text of the condition
      */
     static CreateQuestConditionLocale(lang, id, condID, text) {
         const locales = DatabaseServer.tables.locales.global
@@ -129,7 +130,7 @@ class SpaceApi{
      * Creates a locale for an item category
      * @param {String} lang The id of the locale ex. "en"  
      * @param {String} id The item category to provide a locale for
-     * @param {String} data The name of the categoy
+     * @param {String} data The name of the category
      */
     static CreateNewHandbookLocale(lang, id, data) {
         const locales = DatabaseServer.tables.locales.global
@@ -238,7 +239,7 @@ class SpaceApi{
         DatabaseServer.tables.traders[traderID].assort.loyal_level_items[id] = loyalty
     }
 
-    
+
     /**
      * Adds an item to a previously created assort
      * @param {String} id The id of the trade
@@ -247,7 +248,7 @@ class SpaceApi{
      * @param {String} parent The id of the item which owns this part
      * @param {String} slotId The slot which this item belongs
      */
-     static AddonTraderAssortSale(id, tpl, traderID, parent, slotId) {
+    static AddonTraderAssortSale(id, tpl, traderID, parent, slotId) {
         DatabaseServer.tables.traders[traderID].assort.items.push({
             "_id": id,
             "_tpl": tpl,
@@ -268,7 +269,7 @@ class SpaceApi{
      * @param {String} traderID The id of the trader
      * @param {Number} loyalty The loyalty level required to purchased
      * @param {Boolean} [unlimited=true] If the item is sold in unlimited quantities
-     * @param {Number} [objectCount=999999] The quantitiy of the item to sell
+     * @param {Number} [objectCount=999999] The quantity of the item to sell
     */
     static CreateTraderBarter(id, tpl, barter, traderID, loyalty, unlimited = true, objectCount = 999999) {
         DatabaseServer.tables.traders[traderID].assort.items.push({
@@ -432,7 +433,7 @@ class SpaceApi{
     }
 
     /**
-     * Adds The child item to The cartrige filter of The parent item
+     * Adds The child item to The cartridge filter of The parent item
      * @param {String} parentItemID The magazine 
      * @param {String} childItemID The ammo to add to The magazine
      */
@@ -492,10 +493,10 @@ class SpaceApi{
     }
 
     /**
-     * Checks if the child item is already in the cartrige filter of the parent item
-     * @param {String} parentItemID The parent which contains the cartrige
-     * @param {String} childItemID The item which is to be check if in the cartrige filter
-     * @returns {Boolean} If the item is in the cartrige filter
+     * Checks if the child item is already in the cartridge filter of the parent item
+     * @param {String} parentItemID The parent which contains the cartridge
+     * @param {String} childItemID The item which is to be check if in the cartridge filter
+     * @returns {Boolean} If the item is in the cartridge filter
      */
     static IsItemAlreadyInCartridgeFilter(parentItemID, childItemID) {
         const items = DatabaseServer.tables.templates.items
@@ -586,33 +587,85 @@ class SpaceApi{
         }
     }
 
-    static AddNewSpawnPoint(id, map, x, y, z,rot, sides, categories, infill) {
-        const maps = DatabaseServer.tables.locations
+    /**
+     * Copies each reference where a slot is filtered by originalId and places customId in the filter in addition to it
+     * @param {String} originalId The item that already exits in the filter
+     * @param {String} customId The item that should be placed in the filter 
+     */
+    static PlaceItemSlotsFilteredBy(originalId, customId) {
+        const items = DatabaseServer.tables.templates.items
+
+        for (var item in items) { // For each item
+            if (items[item]._props.Slots) { // If the item has slots
+                for (var slot in items[item]._props.Slots) { // For each slot
+                    if (items[item]._props.Slots[slot]._props.filters[0].Filter.includes(originalId)) { // If the slot filters by the original Id
+                        items[item]._props.Slots[slot]._props.filters[0].Filter.push(customId); // Add the new Id
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Copies each reference where a grid is filtered by originalId and places customId in the filter in addition to it
+     * @param {String} originalId The item that already exits in the filter
+     * @param {String} customId The item that should be placed in the filter 
+     */
+    static PlaceItemGridsFilteredBy(originalId, customId) {
+        const items = DatabaseServer.tables.templates.items
+
+        for (var item in items) { // For each item
+            if (items[item]._props.Grids) { // If the item contains grids
+                for (var grid in items[item]._props.Grids) { // For each grid
+                    if (items[item]._props.Grids[grid]._props.filters[0].Filter.includes(originalId)) { // If the grid filters by the original Id
+                        items[item]._props.Grids[grid]._props.filters[0].Filter.push(customId);  // Add the new Id
+                    }
+                    if (items[item]._props.Grids[grid]._props.filters[0].ExcludedFilter.includes(originalId)) { // If the grid filters by the original Id
+                        items[item]._props.Grids[grid]._props.filters[0].ExcludedFilter.push(customId);  // Add the new Id
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds a new spawn point to a map
+     * @param {String} id An id representing the A 
+     * @param {String} map The ID of the map which to add the spawn point
+     * @param {Number} x The X position of the spawn point
+     * @param {Number} y The Y position of the spawn point
+     * @param {Number} z The Z position of the spawn point
+     * @param {Number} rotation The rotation of the character spawned
+     * @param {Array<String>} sides A list of the sides allowed to spawn
+     * @param {Array<String>} categories A List of catagories allowed to spawn. possible values: "Player", "Bot", "Boss"
+     * @param {String} infill The name of the infiltration point if it is one
+     */
+    static AddNewSpawnPoint(id, map, x, y, z, rotation, sides, categories, infill) {
         const NewSpawn = {
-			"Id": id,
-			"Position": {
-				"x": x,
-				"y": y,
-				"z": z
-			},
-			"Rotation": rot,
-			"Sides": sides,
-			"Categories": categories,
-			"Infiltration": infill,
-			"DelayToCanSpawnSec": 5,
-			"ColliderParams": {
-				"_parent": "SpawnSphereParams",
-				"_props": {
-					"Center": {
-						"x": 0,
-						"y": 0,
-						"z": 0
-					},
-					"Radius": 80
-				}
-			}
-		}
-        maps[map].base.SpawnPointParams.push(NewSpawn)
+            "Id": id,
+            "Position": {
+                "x": x,
+                "y": y,
+                "z": z
+            },
+            "Rotation": rotation,
+            "Sides": sides,
+            "Categories": categories,
+            "Infiltration": infill,
+            "DelayToCanSpawnSec": 5,
+            "ColliderParams": {
+                "_parent": "SpawnSphereParams",
+                "_props": {
+                    "Center": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Radius": 80
+                }
+            }
+        }
+        DatabaseServer.tables.locations[map].base.SpawnPointParams.push(NewSpawn)
     }
 
 
