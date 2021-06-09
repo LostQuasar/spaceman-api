@@ -307,26 +307,21 @@ class SpaceApi {
      * @param {String} currency The id of the currency the trader buys thing in
      */
     static CreateNewTrader(newID, enabled, avatar, currency) {
-        const traders = DatabaseServer.tables.traders;
-        const NewTrader = JsonUtil.clone(traders["ragfair"])
+        const NewTrader = JsonUtil.clone(DatabaseServer.tables.traders["ragfair"])
 
-        NewTrader._id = newID
-        if (enabled) {
-            NewTrader.base.working = enabled
-        }
-        if (avatar) {
-            NewTrader.base.avatar = avatar
-        }
-        if (currency) {
-            NewTrader.base.currency = currency
-        }
+        NewTrader.base._id = newID;
+        NewTrader.base.working = enabled;
+        NewTrader.base.avatar = avatar;
+        NewTrader.base.currency = currency;
         NewTrader.questassort = {
             "started": {},
             "success": {},
             "fail": {}
-        }
+        };
 
-        traders[newID] = NewTrader
+        NewTrader.assort = {"items": [],"barter_scheme": {},"loyal_level_items": {}};
+
+        DatabaseServer.tables.traders[newID] = NewTrader;
 
     }
 
@@ -666,6 +661,19 @@ class SpaceApi {
             }
         }
         DatabaseServer.tables.locations[map].base.SpawnPointParams.push(NewSpawn)
+    }
+
+    /**
+     * Returns the sum of the prices of all the items in the list assortItems
+     * @param {Array<String>} assortItems 
+     * @returns {Number}
+     */
+    static GetPriceOfList(assortItems) {
+        var outputPrice = 0;
+        for (var item in assortItems) {
+            outputPrice += DatabaseServer.tables.templates.items[assortItems[item]]._props.CreditsPrice;
+        }
+        return outputPrice;
     }
 
 
