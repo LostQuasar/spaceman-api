@@ -2,6 +2,6 @@
 	"name": "api",
 	"author": "spaceman",
 	"version": "1.5.0",
-	"license": "NCSA",
+	"license": "GPL",
 	"dependencies": {}
 }
