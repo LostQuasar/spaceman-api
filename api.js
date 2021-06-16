@@ -348,7 +348,7 @@ class SpaceApi {
     static EditTraderLL(id, level, minLvl, minSls, minStand) {
         const traders = DatabaseServer.tables.traders;
 
-        traders[id].base.loyaltyLevels[level] = {
+        traders[id].base.loyalty.loyaltyLevels[level] = {
             "minLevel": minLvl,
             "minSalesSum": minSls,
             "minStanding": minStand
@@ -587,10 +587,11 @@ class SpaceApi {
      * @param {String} originalId The item that already exits in the filter
      * @param {String} customId The item that should be placed in the filter 
      */
-    static PlaceItemSlotsFilteredBy(originalId, customId) {
+    static AddItemCopyFilter(originalId, customId) {
         const items = DatabaseServer.tables.templates.items
 
         for (var item in items) { // For each item
+
             if (items[item]._props.Slots) { // If the item has slots
                 for (var slot in items[item]._props.Slots) { // For each slot
                     if (items[item]._props.Slots[slot]._props.filters[0].Filter.includes(originalId)) { // If the slot filters by the original Id
@@ -598,30 +599,44 @@ class SpaceApi {
                     }
                 }
             }
-        }
-    }
 
-    /**
-     * Copies each reference where a grid is filtered by originalId and places customId in the filter in addition to it
-     * @param {String} originalId The item that already exits in the filter
-     * @param {String} customId The item that should be placed in the filter 
-     */
-    static PlaceItemGridsFilteredBy(originalId, customId) {
-        const items = DatabaseServer.tables.templates.items
+            if (items[item]._props.Grids) { // If the item contains Grids
+                for (var grid in items[item]._props.Grids) { // For each Grid
+                    if(items[item]._props.Grids[grid]._props.filters.length > 0){
+                        if (items[item]._props.Grids[grid]._props.filters[0].Filter.includes(originalId)) { // If the grid filters by the original Id
+                            items[item]._props.Grids[grid]._props.filters[0].Filter.push(customId);  // Add the new Id
+                        }
+                        if (items[item]._props.Grids[grid]._props.filters[0].ExcludedFilter.includes(originalId)) { // If the grid filters by the original Id
+                            items[item]._props.Grids[grid]._props.filters[0].ExcludedFilter.push(customId);  // Add the new Id
+                        }
+                    }
+                }
+            }
 
-        for (var item in items) { // For each item
-            if (items[item]._props.Grids) { // If the item contains grids
-                for (var grid in items[item]._props.Grids) { // For each grid
-                    if (items[item]._props.Grids[grid]._props.filters[0].Filter.includes(originalId)) { // If the grid filters by the original Id
-                        items[item]._props.Grids[grid]._props.filters[0].Filter.push(customId);  // Add the new Id
+            if (items[item]._props.Chambers) { // If the item contains Chambers
+                for (var chamber in items[item]._props.Chambers) { // For each Chambers
+                    if (items[item]._props.Chambers[chamber]._props.filters[0].Filter.includes(originalId)) { // If the grid chamber by the original Id
+                        items[item]._props.Chambers[chamber]._props.filters[0].Filter.push(customId);  // Add the new Id
                     }
-                    if (items[item]._props.Grids[grid]._props.filters[0].ExcludedFilter.includes(originalId)) { // If the grid filters by the original Id
-                        items[item]._props.Grids[grid]._props.filters[0].ExcludedFilter.push(customId);  // Add the new Id
+                }
+            }
+
+            if (items[item]._props.Cartridges) { // If the item contains Cartridges
+                for (var cartridge in items[item]._props.Cartridges) { // For each cartridge
+                    if (items[item]._props.Cartridges[cartridge]._props.filters[0].Filter.includes(originalId)) { // If the cartridge filters by the original Id
+                        items[item]._props.Cartridges[cartridge]._props.filters[0].Filter.push(customId);  // Add the new Id
                     }
+                }
+            }
+
+            if (items[item]._props.ConflictingItems) { // If the item has ConflictingItems
+                if (items[item]._props.ConflictingItems.includes(originalId)) { // If the item conflicts with the original id
+                    items[item]._props.ConflictingItems.push(customId);  // Add the new Id
                 }
             }
         }
     }
+
 
     /**
      * Adds a new spawn point to a map
